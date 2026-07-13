@@ -14,6 +14,9 @@ import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 
 class MainActivity : ComponentActivity() {
@@ -32,6 +35,12 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Truly full-screen: draw edge-to-edge and hide both system bars.
+        // They reappear transiently on a swipe from the screen edge.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        hideSystemBars()
+
         swipe = findViewById(R.id.swipe)
         web = findViewById(R.id.web)
         brandSplash = findViewById(R.id.brandSplash)
@@ -72,6 +81,20 @@ class MainActivity : ComponentActivity() {
         mainHandler.postDelayed({ hideBrandSplash() }, 2500)
 
         if (savedInstanceState == null) web.loadUrl(storeUrl) else web.restoreState(savedInstanceState)
+    }
+
+    /** Hide the status and navigation bars, letting them show transiently on swipe. */
+    private fun hideSystemBars() {
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            hide(WindowInsetsCompat.Type.systemBars())
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Re-assert immersive mode after dialogs, task-switch, or permission prompts.
+        if (hasFocus) hideSystemBars()
     }
 
     /** Fade out the branded opening overlay exactly once. */
