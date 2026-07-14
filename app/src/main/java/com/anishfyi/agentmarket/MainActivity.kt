@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var swipe: SwipeRefreshLayout
     private lateinit var brandSplash: View
 
+    private val bridge = JRBridge()
     private val mainHandler = Handler(Looper.getMainLooper())
     private var brandSplashDismissed = false
 
@@ -46,6 +47,7 @@ class MainActivity : ComponentActivity() {
         brandSplash = findViewById(R.id.brandSplash)
         web.settings.javaScriptEnabled = true
         web.settings.domStorageEnabled = true
+        web.addJavascriptInterface(bridge, "JRBridge")
 
         web.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -73,6 +75,11 @@ class MainActivity : ComponentActivity() {
         }
 
         swipe.setOnRefreshListener { web.reload() }
+        // Suppress pull-to-refresh while a full-screen overlay is open (page scroll
+        // is locked at 0 behind it) or whenever the page isn't at the very top —
+        // returning true means "the child can scroll up", so SwipeRefreshLayout
+        // won't claim the gesture.
+        swipe.setOnChildScrollUpCallback { _, _ -> bridge.overlayOpen || web.scrollY > 0 }
         onBackPressedDispatcher.addCallback(this) {
             if (web.canGoBack()) web.goBack() else finish()
         }
