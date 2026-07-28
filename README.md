@@ -1,4 +1,4 @@
-# Jodhpur Rugs — Android app
+# Android app
 
 A minimal Kotlin WebView wrapper for the Jodhpur Rugs storefront
 (`testing-fr-vtxocn90.myshopify.com`): full-screen store, splash screen,
